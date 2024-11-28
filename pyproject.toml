@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "hass-auth-header"
-version = "0.1.0"
+name = "cfaccess-auth-provider"
+version = "1.0.0"
 description = ""
-authors = ["Jens Langhammer <jens.langhammer@beryju.org>"]
+authors = ["junosuarez"]
 license = "GPL"
 
 [tool.poetry.dependencies]
 python = "^3.10"
 
 [tool.poetry.dev-dependencies]
-homeassistant = "^2023.7.3"
+homeassistant = "^2024.11.2"
 pylint = "*"
 black = "*"
 isort = "*"

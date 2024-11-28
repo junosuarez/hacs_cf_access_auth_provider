@@ -1,0 +1,12 @@
+{
+  "domain": "cfaccess",
+  "name": "CfAccess Authentication",
+  "documentation": "hacs_cf_access_auth_provider",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": ["auth"],
+  "codeowners": ["@junosuarez"],
+  "version": "1.0.0"
+}

@@ -14,29 +14,30 @@ from homeassistant.components.auth.login_flow import LoginFlowIndexView
 from homeassistant.components.http.ban import log_invalid_auth
 from homeassistant.components.http.data_validator import RequestDataValidator
 from homeassistant.core import HomeAssistant
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.components.frontend import add_extra_js_url
 
-from . import headers
+from . import CfAccessAuthProvider
 
 if TYPE_CHECKING:
     from homeassistant.components.http import FastUrlDispatcher
     from aiohttp.web_urldispatcher import UrlDispatcher, AbstractResource
 
-DOMAIN = "auth_header"
+DOMAIN = "cfaccess"
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
             {
-                vol.Optional("username_header", default="X-Forwarded-Preferred-Username"): cv.string,
-                vol.Optional("allow_bypass_login", default=True): cv.boolean,
+                vol.Optional("jwt_header", default="Cf-Access-Jwt-Assertion"): cv.string,
+                vol.Required("audience"): cv.string,
+                vol.Required("issuer"): cv.string,
                 vol.Optional("debug", default=False): cv.boolean,
             }
         )
     },
     extra=vol.ALLOW_EXTRA,
 )
-
 
 async def async_setup(hass: HomeAssistant, config):
     """Register custom view which includes request in context"""
@@ -66,15 +67,16 @@ async def async_setup(hass: HomeAssistant, config):
     )
 
     # Load script to store tokens in local storage, else we'll re-auth on every browser refresh.
-    hass.http.register_static_path(
-        "/auth_header/store-token.js",
+    await hass.http.async_register_static_paths([
+        StaticPathConfig("/cfaccess/store-token.js",
         os.path.join(os.path.dirname(__file__), 'store-token.js'),
-    )
-    add_extra_js_url(hass, '/auth_header/store-token.js')
+        cache_headers=True)
+    ])
+    add_extra_js_url(hass, '/cfaccess/store-token.js')
 
     # Inject Auth-Header provider.
     providers = OrderedDict()
-    provider = headers.HeaderAuthProvider(
+    provider = CfAccessAuthProvider.CfAccessAuthProvider(
         hass,
         hass.auth._store,
         config[DOMAIN],
@@ -82,7 +84,7 @@ async def async_setup(hass: HomeAssistant, config):
     providers[(provider.type, provider.id)] = provider
     providers.update(hass.auth._providers)
     hass.auth._providers = providers
-    _LOGGER.debug("Injected auth_header provider")
+    _LOGGER.debug("Injected CfAccess auth provider")
     return True
 
 
